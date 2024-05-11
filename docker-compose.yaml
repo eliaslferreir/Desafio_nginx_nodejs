@@ -1,0 +1,53 @@
+version: '3.9'
+#Author: Elias Ferreira
+services:
+
+  db:
+    image: mysql:5.7
+    command: --innodb-use-native-aio=0
+    container_name: db
+    restart: always
+    tty: true
+    volumes:
+      - ./MySQL:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=nodedb
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=admin
+    networks:
+      - desafio-network
+    ports:
+      - "3306:3306"
+    
+
+  app:
+    container_name: app
+    build:
+      context: ./node
+    volumes:
+      - ./node:/app
+      - /app/node_modules
+    networks:
+      - desafio-network
+    tty: true
+    depends_on:
+      - db
+    ports:
+      - 3000:3000
+
+  nginx:
+    container_name: nginx
+    build:
+      context: ./nginx
+      dockerfile: dockerfile
+    ports:
+      - 8080:8080
+    depends_on:
+      - app
+      - db
+    networks:
+      - desafio-network
+
+networks:
+  desafio-network:
+    driver: bridge
